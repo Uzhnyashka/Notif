@@ -18,6 +18,9 @@ import android.widget.ListView;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -38,11 +41,10 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     AtomicInteger msgId = new AtomicInteger();
     String regid;
 
+    DbUtils dbUtils;
+
     ArrayList<NotificationItem> notifactionList;
 
-
-    private NotificationCompat.Builder mBuilder;
-    NotificationManager mNotificationManager;
     private static final int NOTIFICATION_ID = 1234;
 
     public ListView lv;
@@ -59,7 +61,9 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 
     private void findViews(){
         notifactionList = new ArrayList<>();
-        
+
+        dbUtils = new DbUtils(this);
+
         lv = (ListView) findViewById(R.id.listView);
         lv.setAdapter(new NAdapter(this, notifactionList));
         lv.setOnItemClickListener(this);
@@ -75,6 +79,14 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         if (regid.isEmpty()) {
             GcmPushHelper.registerGcmAsync(this, gcm);
         }
+
+        try {
+            notifactionList = dbUtils.getJsonFromDb();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        updateAdapter();
     }
 
     @Override
@@ -109,26 +121,6 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     }
 
     private void onClickAddNotification() {
-//        mBuilder = new NotificationCompat.Builder(this)
-//                .setSmallIcon(android.R.drawable.ic_dialog_alert)
-//                .setContentTitle("My notification")
-//                .setContentText("Hello World!")
-//                .setAutoCancel(true);
-//
-//        Intent resultIntent = new Intent(this, MainActivity.class);
-//        PendingIntent pendingIntent = PendingIntent.getActivity(this, NOTIFICATION_ID, resultIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-//
-//        mBuilder.setContentIntent(pendingIntent);
-//        mBuilder.setSound(Uri.parse("android.resource://" + this.getPackageName() + "/" + R.raw.notification_music));
-//
-//
-//        Notification notification = mBuilder.build();
-//        notification.ledOnMS = 100;
-//        notification.ledOffMS = 100;
-//        notification.flags = Notification.FLAG_SHOW_LIGHTS;
-//
-//        mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-//        mNotificationManager.notify(NOTIFICATION_ID, notification);
         NotificationItem ni = new NotificationItem();
         ni.setMessage("message");
         ni.setTitle("title");
@@ -136,6 +128,20 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         ni.setTickerText("tickerText");
         ni.setVibrate(1);
         ni.setSound(1);
+
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("message", "message");
+            jsonObject.put("title", "title");
+            jsonObject.put("subtitle", "subtitle");
+            jsonObject.put("tickerText", "tickerText");
+            jsonObject.put("vibrate", 1);
+            jsonObject.put("sound", 1);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        dbUtils.addJsonToDB(jsonObject);
 
         notifactionList.add(ni);
 
@@ -197,6 +203,8 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         @Override
         public void onReceive(Context _context, Intent _intent) {
             showNotification(_context, intentToNI(_intent));
+            JSONObject json = dbUtils.bundleToJson(_intent.getExtras());
+            dbUtils.addJsonToDB(json);
         }
     }
 
