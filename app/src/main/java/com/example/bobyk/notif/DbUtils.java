@@ -30,8 +30,8 @@ public class DbUtils {
 
     public JSONObject bundleToJson(Bundle _bundle) {
         JSONObject json = new JSONObject();
-        Set<String> keys = _bundle.keySet();
-        for (String key : keys) {
+        Set<String> k = _bundle.keySet();
+        for (String key : k) {
             try {
                 json.put(key, _bundle.get(key));
             } catch (JSONException e) {
@@ -50,7 +50,7 @@ public class DbUtils {
         db.insert(ConstValues.NOTIFICATION_TABLE, null, cv);
     }
 
-    public ArrayList<NotificationItem> getJsonFromDb() throws JSONException {
+    public ArrayList<NotificationItem> getNotificationsFromDb() throws JSONException {
         notificationItems = new ArrayList<>();
 
         if (c.moveToFirst()){

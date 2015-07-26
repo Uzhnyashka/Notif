@@ -4,4 +4,6 @@
     <color name="MyBlack">#000000</color>
     <color name="actionbar_background">#df004681</color>
     <color name="actionbar_text">#ffe8fffc</color>
+    <color name="background_item">#b0000000</color>
+    <color name="text_item">#ffe8fffc</color>
 </resources>

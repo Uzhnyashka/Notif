@@ -22,7 +22,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by bobyk on 26/07/15.
@@ -30,24 +29,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class MainActivity extends ActionBarActivity implements AdapterView.OnItemClickListener{
 
     public static final String TAG = "tag19";
-
-    public static final String EXTRA_MESSAGE = "message";
-
     public static final String MESSAGE_INTENT = "com.example.bobyk.notif.receive_message";
-
-    private MessageReceiver mMessageReceiver;
-
-    GoogleCloudMessaging gcm;
-    AtomicInteger msgId = new AtomicInteger();
-    String regid;
-
-    DbUtils dbUtils;
-
-    ArrayList<NotificationItem> notifactionList;
-
     private static final int NOTIFICATION_ID = 1234;
 
-    public ListView lv;
+    private Receiver mMessageReceiver;
+
+    public GoogleCloudMessaging gcm;
+    public String regid;
+    private ListView lv;
+    private DbUtils dbUtils;
+
+    ArrayList<NotificationItem> notifactionList;
 
 
     @Override
@@ -70,7 +62,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     }
 
     private void register(){
-        mMessageReceiver = new MessageReceiver();
+        mMessageReceiver = new Receiver();
 
         if (!GcmPushHelper.checkPlayServices(this)) return;
 
@@ -81,7 +73,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         }
 
         try {
-            notifactionList = dbUtils.getJsonFromDb();
+            notifactionList = dbUtils.getNotificationsFromDb();
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -131,10 +123,10 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.put("message", "message");
-            jsonObject.put("title", "title");
-            jsonObject.put("subtitle", "subtitle");
-            jsonObject.put("tickerText", "tickerText");
+            jsonObject.put("message", "Message");
+            jsonObject.put("title", "Title");
+            jsonObject.put("subtitle", "Subtitle");
+            jsonObject.put("tickerText", "TickerText");
             jsonObject.put("vibrate", 1);
             jsonObject.put("sound", 1);
         } catch (JSONException e) {
@@ -142,11 +134,8 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         }
 
         dbUtils.addJsonToDB(jsonObject);
-
         notifactionList.add(ni);
-
         showNotification(this, ni);
-
         updateAdapter();
     }
 
@@ -198,7 +187,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         lv.setAdapter(new NAdapter(this, notifactionList));
     }
 
-    private class MessageReceiver extends BroadcastReceiver{
+    private class Receiver extends BroadcastReceiver{
 
         @Override
         public void onReceive(Context _context, Intent _intent) {
